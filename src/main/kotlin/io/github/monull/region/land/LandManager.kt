@@ -13,6 +13,7 @@ class LandManager(val plugin: RegionSurvivalPlugin) {
         folder.listFiles()?.forEach {
             val land = Land().apply {
                 load(it)
+                setBox()
             }
             lands[land.loc] = land
         }
@@ -26,7 +27,8 @@ class LandManager(val plugin: RegionSurvivalPlugin) {
                         locy = loc.y
                         locz = loc.z
                         name = "$locx$locz.yml"
-                        load(File(folder, name))
+                        file = File(folder, name)
+                        setBox()
                     }
                 }
             }
@@ -34,6 +36,12 @@ class LandManager(val plugin: RegionSurvivalPlugin) {
 
         lands.values.forEach {
             Lands.lands += it
+        }
+    }
+
+    fun saveLand() {
+        Lands.lands.forEach {
+            it.save()
         }
     }
 }

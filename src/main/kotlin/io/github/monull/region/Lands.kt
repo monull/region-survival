@@ -6,20 +6,12 @@ import org.bukkit.entity.Player
 
 object Lands {
     var lands = arrayListOf<Land>()
+    val nullLand = Land()
 }
 
 val Location.nearestLand: Land
     get() {
-        var distance = 100.0
-        var nearest: Land? = null
-        Lands.lands.forEach {
-            val dis = it.loc.distance(this)
-            if (dis < distance) {
-                distance = dis
-                nearest = it
-            }
-        }
-        return nearest!!
+        return Lands.lands.find { it.box.contain(x, z) } ?: Lands.nullLand
     }
 
 fun Player.canAccessLand(land: Land): Boolean {

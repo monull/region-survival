@@ -25,6 +25,8 @@ class Land {
 
     lateinit var file: File
 
+    lateinit var box: LandBox
+
     fun load(file: File) {
         this.file = file
         val yaml = YamlConfiguration.loadConfiguration(file)
@@ -45,6 +47,10 @@ class Land {
         yaml.set("owner", owner)
         yaml.set("price", price)
         yaml.save(file)
+    }
+
+    fun setBox() {
+        box = LandBox(locx - 4.5, locz - 4.5, locx + 4.5, locz + 4.5)
     }
 
 }
