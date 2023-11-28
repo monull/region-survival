@@ -20,13 +20,13 @@ repositories {
 }
 
 dependencies {
-    implementation(kotlin("stdlib"))
-    implementation(kotlin("reflect"))
+    compileOnly(kotlin("stdlib"))
+    compileOnly(kotlin("reflect"))
     paperweight.paperDevBundle(libs.versions.paper)
 
-    implementation("io.github.monun:kommand-api:3.1.7")
-    implementation("io.github.monun:tap-api:4.9.8")
-    implementation("io.github.monun:invfx-api:3.3.2")
+    compileOnly("io.github.monun:kommand-api:3.1.7")
+    compileOnly("io.github.monun:tap-api:4.9.8")
+    compileOnly("io.github.monun:invfx-api:3.3.2")
 }
 
 extra.apply {
