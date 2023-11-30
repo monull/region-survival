@@ -26,7 +26,7 @@ dependencies {
 
     compileOnly("io.github.monun:kommand-api:3.1.7")
     compileOnly("io.github.monun:tap-api:4.9.8")
-    compileOnly("io.github.monun:invfx-api:3.3.2")
+    implementation("io.github.monun:invfx-api:3.3.2")
 }
 
 extra.apply {

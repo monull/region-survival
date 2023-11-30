@@ -3,6 +3,7 @@ package io.github.monull.region.plugin
 import io.github.monull.region.Lands
 import io.github.monull.region.canAccessLand
 import io.github.monull.region.land.Land
+import io.github.monull.region.merchant.MerchantPlayer
 import io.github.monull.region.nearestLand
 import org.bukkit.Location
 import org.bukkit.block.Container
@@ -36,14 +37,33 @@ import org.bukkit.event.player.PlayerBucketFillEvent
 import org.bukkit.event.player.PlayerDropItemEvent
 import org.bukkit.event.player.PlayerInteractEntityEvent
 import org.bukkit.event.player.PlayerInteractEvent
+import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerMoveEvent
+import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.player.PlayerTeleportEvent
 import org.bukkit.event.vehicle.VehicleDestroyEvent
 import org.bukkit.event.vehicle.VehicleMoveEvent
 import org.bukkit.material.Directional
+import java.io.File
 import java.util.*
 
 class RegionListener : Listener {
+
+    @EventHandler
+    fun onPlayerJoin(event: PlayerJoinEvent) {
+        Lands.merchantPlayers += if (File(Lands.plugin.dataFolder, "${event.player.name}.yml").exists()) {
+            MerchantPlayer(event.player).apply {
+                load(File(Lands.plugin.dataFolder, "${event.player.name}.yml"))
+            }
+        } else MerchantPlayer(event.player)
+    }
+
+    @EventHandler
+    fun onPlayerQuit(event: PlayerQuitEvent) {
+        val m = Lands.merchantPlayers.find { it.player == event.player }
+        m?.save()
+        Lands.merchantPlayers.remove(m)
+    }
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     fun onPlayerMove(event: PlayerMoveEvent) {
         if (event.from.nearestLand != event.to.nearestLand) {

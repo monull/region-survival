@@ -1,8 +1,9 @@
 package io.github.monull.region.plugin
 
-import io.github.monull.region.Merchant
+import io.github.monull.region.Lands
 import io.github.monull.region.RegionKommand
 import io.github.monull.region.land.LandManager
+import io.github.monull.region.merchant.MerchantPlayer
 import io.github.monun.kommand.kommand
 import io.github.monun.tap.fake.FakeEntityServer
 import org.bukkit.Bukkit
@@ -11,19 +12,24 @@ import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.plugin.java.JavaPlugin
+import java.io.File
 
 class RegionSurvivalPlugin : JavaPlugin() {
     lateinit var landManager: LandManager
     lateinit var fakeEntityServer: FakeEntityServer
-    lateinit var merchant: Merchant
     override fun onEnable() {
         dataFolder.mkdirs()
-        setupServer()
         setupModules()
+        setupServer()
     }
 
     override fun onDisable() {
         landManager.saveLand()
+        Lands.merchantPlayers.forEach {
+            it.merchant?.interactioner?.remove()
+            it.save()
+        }
+        fakeEntityServer.clear()
     }
 
     fun setupServer() {
@@ -32,6 +38,14 @@ class RegionSurvivalPlugin : JavaPlugin() {
             it.setSpawnLocation(0, y.toInt(), 0)
             it.worldBorder.setCenter(0.0, 0.0)
             it.worldBorder.size = 49.0 * 49.0
+        }
+        Bukkit.getOnlinePlayers().forEach {
+            Lands.merchantPlayers += if (File(dataFolder, "${it.name}.yml").exists()) {
+                MerchantPlayer(it).apply {
+                    load(File(dataFolder, "${it.name}.yml"))
+                }
+            } else MerchantPlayer(it)
+            fakeEntityServer.addPlayer(it)
         }
     }
 
@@ -58,6 +72,7 @@ class RegionSurvivalPlugin : JavaPlugin() {
             }, this@RegionSurvivalPlugin)
             Bukkit.getScheduler().runTaskTimer(this@RegionSurvivalPlugin, Runnable { update() }, 0L, 1L)
         }
-        merchant = Merchant().apply { initialize(this@RegionSurvivalPlugin) }
+
+        Lands.plugin = this
     }
 }
