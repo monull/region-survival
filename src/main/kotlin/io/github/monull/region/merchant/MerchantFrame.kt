@@ -35,7 +35,18 @@ object MerchantFrame {
                 transform {
                     ItemStack(Material.GRASS_BLOCK).apply {
                         itemMeta = itemMeta.apply {
-                            displayName(Component.text("(${it.locx.toInt()}, ${it.locz.toInt()})"))
+                            displayName(text("(${it.locx.toInt()}, ${it.locz.toInt()})"))
+                            lore(
+                                listOf<Component>(
+                                    text().color(NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, false)
+                                        .content("땅값: ").build().append(text().color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
+                                            .content("${it.price}").build()),
+                                    text().color(NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false).content("주인: ").build()
+                                        .append(text().color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false).content(
+                                            if (it.owner == "null") "없음" else it.owner
+                                        ).build())
+                                )
+                            )
                         }
                     }
                 }

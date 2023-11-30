@@ -5,6 +5,7 @@ import io.github.monull.region.merchant.MerchantPlayer
 import io.github.monull.region.plugin.RegionSurvivalPlugin
 import io.github.monun.invfx.InvFX
 import net.kyori.adventure.text.Component.text
+import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.entity.Player
@@ -12,7 +13,12 @@ import org.bukkit.inventory.ItemStack
 
 object Lands {
     var lands = arrayListOf<Land>()
-    val nullLand = Land()
+    val nullLand = Land().apply {
+        loc = Location(Bukkit.getWorlds().first(), 99.0, 0.0, 99.0)
+        locx = 99.0
+        locz = 99.0
+        locy = 0.0
+    }
     var canAccessAll = true
     var merchantPlayers = arrayListOf<MerchantPlayer>()
     lateinit var plugin: RegionSurvivalPlugin

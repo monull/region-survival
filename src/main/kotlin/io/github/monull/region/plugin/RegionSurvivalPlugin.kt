@@ -73,6 +73,8 @@ class RegionSurvivalPlugin : JavaPlugin() {
             Bukkit.getScheduler().runTaskTimer(this@RegionSurvivalPlugin, Runnable { update() }, 0L, 1L)
         }
 
+        Bukkit.getScheduler().runTaskTimer(this, RegionScheduler(), 0L, 1L)
+
         Lands.plugin = this
     }
 }
