@@ -5,6 +5,7 @@ import io.github.monun.tap.config.ConfigSupport
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.configuration.file.YamlConfiguration
+import org.bukkit.entity.Player
 import java.io.File
 
 class Land {
@@ -23,6 +24,8 @@ class Land {
 
     var owner = "null"
 
+    var whitelist = arrayListOf<String>()
+
     lateinit var file: File
 
     lateinit var box: LandBox
@@ -37,6 +40,9 @@ class Land {
         name = "$locx$locz.yml"
         price = yaml.getInt("price")
         owner = yaml.getString("owner")!!
+        yaml.getStringList("whitelist").forEach {
+            whitelist += it
+        }
     }
 
     fun save() {
@@ -46,6 +52,7 @@ class Land {
         yaml.set("locz", locz)
         yaml.set("owner", owner)
         yaml.set("price", price)
+        yaml.set("whitelist", whitelist)
         yaml.save(file)
     }
 

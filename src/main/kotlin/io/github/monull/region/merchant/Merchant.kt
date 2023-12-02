@@ -14,10 +14,11 @@ import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerInteractAtEntityEvent
 import org.bukkit.event.player.PlayerInteractEntityEvent
 
-class Merchant(val player: Player) {
+class Merchant(val mplayer: MerchantPlayer) {
     lateinit var entity: FakeEntity<Player>
     lateinit var interactioner: Entity
     lateinit var listener: Listener
+    val player: Player = mplayer.player
     fun initialize(plugin: RegionSurvivalPlugin, loc: Location) {
         val bl = Bukkit.getWorlds().first().getHighestBlockAt(loc.x.toInt(), loc.z.toInt())
         val loc2 = Location(Bukkit.getWorlds().first(), loc.x, bl.y.toDouble() + 1.0, loc.z)
@@ -34,7 +35,7 @@ class Merchant(val player: Player) {
         @EventHandler
         fun onPlayerInteractEntity(event: PlayerInteractEntityEvent) {
             if (event.rightClicked == interactioner) {
-                event.player.openFrame(MerchantFrame.openFrame())
+                event.player.openFrame(MerchantFrame.openMenuFrame(mplayer))
             }
         }
     }

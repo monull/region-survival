@@ -59,7 +59,7 @@ object RegionKommand {
     private fun setupLands() {
         Lands.merchantPlayers.forEach {
             val loc = it.initialLand.loc
-            it.merchant = Merchant(it.player).apply {
+            it.merchant = Merchant(it).apply {
                 initialize(Lands.plugin, loc)
             }
         }
