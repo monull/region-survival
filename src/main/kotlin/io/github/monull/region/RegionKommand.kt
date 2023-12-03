@@ -5,6 +5,7 @@ import io.github.monull.region.merchant.Merchant
 import io.github.monun.kommand.PluginKommand
 import io.github.monun.kommand.getValue
 import io.github.monun.kommand.node.RootNode
+import net.kyori.adventure.text.Component.text
 import org.bukkit.entity.Player
 
 object RegionKommand {
@@ -25,6 +26,7 @@ object RegionKommand {
                             val land: Land by context
                             land.owner = player.name
                             land.save()
+                            feedback(text("(${land.locx}, ${land.locz})에 있는 땅이 ${player.name}의 땅이 되었습니다."))
                         }
                     }
                 }
@@ -38,6 +40,7 @@ object RegionKommand {
                             Lands.findPlayer(player).initialLand = land
                             land.owner = player.name
                             land.save()
+                            feedback(text("(${land.locx}, ${land.locz})에 있는 땅이 ${player.name}의 시작 땅이 되었습니다."))
                         }
                     }
                 }
@@ -46,11 +49,17 @@ object RegionKommand {
                 executes {
                     Lands.canAccessAll = false
                     setupLands()
+                    feedback(text("시작!"))
                 }
             }
             then("stop") {
                 executes {
                     Lands.canAccessAll = true
+                    feedback(text("끝!"))
+                    Lands.merchantPlayers.forEach {
+                        it.merchant?.interactioner?.remove()
+                        it.save()
+                    }
                 }
             }
         }

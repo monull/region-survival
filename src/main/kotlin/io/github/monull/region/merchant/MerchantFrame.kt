@@ -115,6 +115,7 @@ object MerchantFrame {
                     if (land.owner == "null" && player.player.inventory.contains(Material.DIAMOND, land.price)) {
                         player.player.inventory.remove(ItemStack(Material.DIAMOND, land.price))
                         land.owner = player.player.name
+                        player.player.sendMessage(text("(${land.locx}, ${land.locz})에 있는 땅이 당신의 땅이 되었습니다."))
                         item.itemMeta = item.itemMeta.apply {
                             displayName(text("(${land.locx.toInt()}, ${land.locz.toInt()})"))
                             lore(
@@ -187,6 +188,7 @@ object MerchantFrame {
                 }
 
                 onClick {
+                    player.player.sendMessage(text("순간이동!"))
                     player.player.teleport(Location(Bukkit.getWorlds().first(), land.locx, Bukkit.getWorlds().first().getHighestBlockAt(land.locx.toInt(), land.locz.toInt()).location.y, land.locz))
                 }
             }
@@ -201,6 +203,7 @@ object MerchantFrame {
                 onClick {
                     land.owner = "null"
                     player.player.inventory.addItem(ItemStack(Material.DIAMOND, land.price))
+                    player.player.sendMessage(text("(${land.locx}, ${land.locz})에 있는 땅을 팔았습니다."))
                 }
             }
 
