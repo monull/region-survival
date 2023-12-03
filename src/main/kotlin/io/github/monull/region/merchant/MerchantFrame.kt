@@ -115,6 +115,20 @@ object MerchantFrame {
                     if (land.owner == "null" && player.player.inventory.contains(Material.DIAMOND, land.price)) {
                         player.player.inventory.remove(ItemStack(Material.DIAMOND, land.price))
                         land.owner = player.player.name
+                        item.itemMeta = item.itemMeta.apply {
+                            displayName(text("(${land.locx.toInt()}, ${land.locz.toInt()})"))
+                            lore(
+                                listOf<Component>(
+                                    text().color(NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, false)
+                                        .content("땅값: ").build().append(text().color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
+                                            .content("${land.price}").build()),
+                                    text().color(NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false).content("주인: ").build()
+                                        .append(text().color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false).content(
+                                            if (land.owner == "null") "없음" else land.owner
+                                        ).build())
+                                )
+                            )
+                        }
                     }
                 }
             }.let { list ->
