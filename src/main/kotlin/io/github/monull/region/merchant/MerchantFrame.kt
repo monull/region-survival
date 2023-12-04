@@ -12,16 +12,17 @@ import net.kyori.adventure.text.format.TextDecoration
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
+import org.bukkit.enchantments.Enchantment
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.SkullMeta
 
-object MerchantFrame {
+class MerchantFrame {
     private val previousItem =
         ItemStack(Material.END_CRYSTAL).apply {
             itemMeta = itemMeta.apply {
                 displayName(
                     text().color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
-                        .decorate(TextDecoration.BOLD).content("←").build()
+                        .decorate(TextDecoration.BOLD).content("↑").build()
                 )
             }
         }
@@ -30,13 +31,13 @@ object MerchantFrame {
             itemMeta = itemMeta.apply {
                 displayName(
                     text().color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
-                        .decorate(TextDecoration.BOLD).content("→").build()
+                        .decorate(TextDecoration.BOLD).content("↓").build()
                 )
             }
         }
 
     fun openMenuFrame(player: MerchantPlayer): InvFrame {
-        return InvFX.frame(1, text("메뉴")) {
+        return InvFX.frame(1, text("☛")) {
             slot(0, 0) {
                 item = ItemStack(Material.GRASS_BLOCK).apply {
                     itemMeta = itemMeta.apply {
@@ -91,7 +92,12 @@ object MerchantFrame {
 
     fun openLandsFrame(player: MerchantPlayer): InvFrame {
         return InvFX.frame(5, text("부동산")) {
-            list(1, 1, 7, 4, false, { Lands.lands }) {
+            for (y in 1..3) {
+                slot(8, y) {
+                    item = ItemStack(Material.YELLOW_WOOL)
+                }
+            }
+            list(0, 0, 7, 4, false, { Lands.lands }) {
                 transform {
                     ItemStack(Material.GRASS_BLOCK).apply {
                         itemMeta = itemMeta.apply {
@@ -107,11 +113,15 @@ object MerchantFrame {
                                         ).build())
                                 )
                             )
+                            if (it.owner != "null") {
+                                this.addEnchant(Enchantment.KNOCKBACK, 0, false)
+                            }
                         }
                     }
                 }
 
-                onClickItem { x, y, (land, item), event ->
+                onClickItem { x, y, (land, _), event ->
+                    val item = event.currentItem!!
                     if (land.owner == "null" && player.player.inventory.contains(Material.DIAMOND, land.price)) {
                         player.player.inventory.remove(ItemStack(Material.DIAMOND, land.price))
                         land.owner = player.player.name
@@ -129,20 +139,23 @@ object MerchantFrame {
                                         ).build())
                                 )
                             )
+                            if (land.owner != "null") {
+                                this.addEnchant(Enchantment.KNOCKBACK, 0, false)
+                            }
                         }
                     }
                 }
             }.let { list ->
-                slot(0, 0) {
+                slot(8, 0) {
                     item = previousItem
                     onClick {
-                        list.index--
+                        list.index -= 8
                     }
                 }
-                slot(8, 0) {
+                slot(8, 4) {
                     item = nextItem
                     onClick {
-                        list.index++
+                        list.index += 8
                     }
                 }
             }
@@ -201,9 +214,14 @@ object MerchantFrame {
                 }
 
                 onClick {
-                    land.owner = "null"
-                    player.player.inventory.addItem(ItemStack(Material.DIAMOND, land.price))
-                    player.player.sendMessage(text("(${land.locx}, ${land.locz})에 있는 땅을 팔았습니다."))
+                    if (land == player.initialLand) {
+                        player.player.sendMessage(text("초기 땅은 팔 수 없습니다!"))
+                    } else {
+                        land.owner = "null"
+                        player.player.inventory.addItem(ItemStack(Material.DIAMOND, land.price))
+                        player.player.sendMessage(text("(${land.locx}, ${land.locz})에 있는 땅을 팔았습니다."))
+                        player.player.closeInventory()
+                    }
                 }
             }
 
@@ -240,7 +258,8 @@ object MerchantFrame {
                     }
                 }
 
-                onClickItem { x, y, (player, item), event ->
+                onClickItem { x, y, (player, _), event ->
+                    val item = event.currentItem!!
                     if (land.whitelist.contains(player.name)) {
                         land.whitelist.remove(player.name)
                         item.itemMeta = (item.itemMeta as SkullMeta).apply {

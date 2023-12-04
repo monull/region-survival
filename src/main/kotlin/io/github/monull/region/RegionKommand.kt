@@ -60,6 +60,9 @@ object RegionKommand {
                         it.merchant?.interactioner?.remove()
                         it.save()
                     }
+                    Lands.plugin.fakeEntityServer.entities.forEach {
+                        it.remove()
+                    }
                 }
             }
         }
@@ -71,6 +74,7 @@ object RegionKommand {
             it.merchant = Merchant(it).apply {
                 initialize(Lands.plugin, loc)
             }
+            Lands.merchants.add(it.merchant!!)
         }
     }
 }

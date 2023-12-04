@@ -1,6 +1,7 @@
 package io.github.monull.region
 
 import io.github.monull.region.land.Land
+import io.github.monull.region.merchant.Merchant
 import io.github.monull.region.merchant.MerchantPlayer
 import io.github.monull.region.plugin.RegionSurvivalPlugin
 import io.github.monun.invfx.InvFX
@@ -12,6 +13,7 @@ import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 
 object Lands {
+    var merchants = arrayListOf<Merchant>()
     var lands = arrayListOf<Land>()
     val nullLand = Land().apply {
         loc = Location(Bukkit.getWorlds().first(), 99.0, 0.0, 99.0)
@@ -36,7 +38,7 @@ val Location.nearestLand: Land
     }
 
 fun Player.canAccessLand(land: Land): Boolean {
-    if (name == land.owner || Lands.canAccessAll) {
+    if (name == land.owner || Lands.canAccessAll || land.whitelist.contains(name)) {
         return true
     } else {
         return false

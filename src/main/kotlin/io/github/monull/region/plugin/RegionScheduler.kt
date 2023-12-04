@@ -11,7 +11,8 @@ class RegionScheduler : Runnable {
         if (ticks == 20 * 60 * 5) {
             Lands.lands.forEach {
                 val random = Random().nextInt(11) - 5
-                it.price += random
+                val ex = it.price + random
+                if (ex > 0) it.price = ex
             }
             ticks = 0
         }

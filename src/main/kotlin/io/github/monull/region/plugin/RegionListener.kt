@@ -54,6 +54,8 @@ class RegionListener : Listener {
         Lands.merchantPlayers += if (File(Lands.plugin.dataFolder, "${event.player.name}.yml").exists()) {
             MerchantPlayer(event.player).apply {
                 load(File(Lands.plugin.dataFolder, "${event.player.name}.yml"))
+                Lands.merchants.find { it.pname == event.player.name }?.mplayer = this
+                merchant = Lands.merchants.find { it.pname == event.player.name }
             }
         } else MerchantPlayer(event.player)
     }
