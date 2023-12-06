@@ -20,8 +20,8 @@ repositories {
 }
 
 dependencies {
-    compileOnly(kotlin("stdlib"))
-    compileOnly(kotlin("reflect"))
+    implementation(kotlin("stdlib"))
+    implementation(kotlin("reflect"))
     paperweight.paperDevBundle(libs.versions.paper)
 
     compileOnly("io.github.monun:kommand-api:3.1.7")
@@ -90,7 +90,7 @@ tasks {
     }
 
     registerJar("dev", jar)
-    registerJar("reobf", reobfJar)
+    registerJar("reobf", jar)
 }
 
 idea {

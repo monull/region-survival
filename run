@@ -24,7 +24,7 @@ DIR=".server"
 SERVER="paper-1.20.1-latest-$classifier"
 
 ## Server memory (GB)
-MEMORY=4
+MEMORY=1
 
 ## When the server shuts down, use tar to back up.
 BACKUP=false
