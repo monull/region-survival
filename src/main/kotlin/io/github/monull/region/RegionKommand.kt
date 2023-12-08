@@ -4,7 +4,6 @@ import io.github.monull.region.land.Land
 import io.github.monull.region.merchant.Merchant
 import io.github.monun.kommand.PluginKommand
 import io.github.monun.kommand.getValue
-import io.github.monun.kommand.node.RootNode
 import net.kyori.adventure.text.Component.text
 import org.bukkit.entity.Player
 
@@ -46,7 +45,17 @@ object RegionKommand {
                 }
             }
             then("start") {
+                requires {
+                    var x = true
+                    Lands.merchantPlayers.forEach {
+                        if (it.initialLand == Lands.nullLand) x = false
+                    }
+                    x
+                }
                 executes {
+                    Lands.merchantPlayers.forEach {
+                        it.player.teleport(it.initialLand.loc)
+                    }
                     Lands.canAccessAll = false
                     setupLands()
                     feedback(text("시작!"))

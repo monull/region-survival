@@ -7,6 +7,7 @@ import io.github.monun.invfx.frame.InvFrame
 import io.github.monun.invfx.openFrame
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.Component.text
+import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextDecoration
 import org.bukkit.Bukkit
@@ -83,8 +84,12 @@ class MerchantFrame {
             slot(5, 0) {
                 item = ItemStack(Material.GREEN_WOOL).apply {
                     itemMeta = itemMeta.apply {
-                        displayName(text("땅 검색하기"))
+                        displayName(text("거래하기"))
                     }
+                }
+
+                onClick {
+                    player.player.openFrame(openTradeFrame(player))
                 }
             }
         }
@@ -184,7 +189,7 @@ class MerchantFrame {
                     }
                 }
 
-                onClickItem { x, y, (land, item), event ->
+                onClickItem { x, y, (land, _), event ->
                     player.player.openFrame(openMyLandSettings(player, land))
                 }
             }
@@ -289,6 +294,449 @@ class MerchantFrame {
                     }
                 }
             }
+        }
+    }
+
+    fun openTradeFrame(player: MerchantPlayer): InvFrame {
+        val list = Bukkit.getOnlinePlayers().toList().filter { it != player.player }
+        var num = 0
+        return InvFX.frame(1, text("거래 요청하기")) {
+            slot(1, 0) {
+                item = ItemStack(Material.PLAYER_HEAD).apply {
+                    itemMeta = (itemMeta as SkullMeta).apply {
+                        owningPlayer = Bukkit.getOfflinePlayer(list.first().name)
+                    }
+                }
+
+                onClick {
+                    item = ItemStack(Material.PLAYER_HEAD).apply {
+                        itemMeta = (itemMeta as SkullMeta).apply {
+                            num += 1
+                            if (num > list.size - 1) num = 0
+                            owningPlayer = Bukkit.getOfflinePlayer(list[num].name)
+                        }
+                    }
+                }
+            }
+
+            slot(7, 0) {
+                item = ItemStack(Material.GREEN_WOOL).apply {
+                    itemMeta = itemMeta.apply {
+                        displayName(text("요청 보내기").color(NamedTextColor.GREEN))
+                    }
+
+                    onClick {
+                        val p = list[num]
+                        player.player.sendMessage(text("요청을 보냈습니다."))
+                        p.sendMessage("${player.player.name}님이 거래를 요청하였습니다.")
+                        p.sendMessage(text("거래 수락").color(NamedTextColor.GREEN).clickEvent(ClickEvent.callback {
+                            trade(player, Lands.merchantPlayers.find { it.player == p }!!)
+                        }))
+                    }
+                }
+            }
+        }
+    }
+
+    var pAccept = false
+    var tAccept = false
+    val ptradeList = arrayListOf<ItemStack>()
+    val ttradeList = arrayListOf<ItemStack>()
+    val pLandList = arrayListOf<Land>()
+    val tLandList = arrayListOf<Land>()
+    val pitemList = arrayListOf<ItemStack>()
+    val titemList = arrayListOf<ItemStack>()
+    var pLandFrame: InvFrame? = null
+    var tLandFrame: InvFrame? = null
+    val next = ItemStack(Material.NETHER_STAR).apply {
+        itemMeta = itemMeta.apply {
+            displayName(text().color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
+                .decorate(TextDecoration.BOLD).content("→").build())
+        }
+    }
+    val previous = ItemStack(Material.NETHER_STAR).apply {
+        itemMeta = itemMeta.apply {
+            displayName(text().color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false)
+                .decorate(TextDecoration.BOLD).content("←").build())
+        }
+    }
+
+    lateinit var pFrame: InvFrame
+    lateinit var tFrame: InvFrame
+
+    fun trade(player: MerchantPlayer, trader: MerchantPlayer) {
+        pFrame = InvFX.frame(5, text("거래")) {
+            for (i in 0..8) {
+                if (i != 4) {
+                    slot(i, 0) {
+                        item = ItemStack(Material.WHITE_WOOL)
+                    }
+                } else {
+                    slot (i, 0) {
+                        item = ItemStack(Material.GREEN_WOOL).apply {
+                            itemMeta = itemMeta.apply {
+                                displayName(text("수락!"))
+                            }
+                        }
+                        onClick {
+                            pAccept = true
+                            if (tAccept) {
+                                tradeSuccess(player, trader, pitemList, titemList, pLandList, tLandList)
+                                player.player.sendMessage(text("거래 성공!"))
+                                trader.player.sendMessage(text("거래 성공!"))
+                            } else {
+                                trader.player.sendMessage(text("거래 수락[1/2]"))
+                                player.player.sendMessage(text("거래 수락[1/2]"))
+                            }
+                        }
+                    }
+                }
+                slot(i, 4) {
+                    item = ItemStack(Material.WHITE_WOOL)
+                }
+                slot(i, 2) {
+                    item = ItemStack(Material.WHITE_WOOL)
+                }
+            }
+            slot(0, 1) {
+                item = ItemStack(Material.WHITE_WOOL)
+            }
+            slot(0, 3) {
+                item = ItemStack(Material.WHITE_WOOL)
+            }
+            slot(8, 1) {
+                item = ItemStack(Material.WHITE_WOOL)
+            }
+            slot(8, 3) {
+                item = ItemStack(Material.GLOBE_BANNER_PATTERN).apply {
+                    itemMeta = itemMeta.apply {
+                        displayName(text("집문서"))
+                    }
+                }
+
+                onClick {
+                    updatePLandFrame(player)
+                    player.player.openFrame(pLandFrame!!)
+                }
+            }
+
+            val list = list(2, 3, 6, 3, false, { ptradeList }) {
+                onClickItem { x, y, item, event ->
+                    if (pitemList.contains(item.first)) {
+                        ptradeList.remove(event.currentItem)
+                        pitemList.remove(event.currentItem)
+                        player.player.inventory.addItem(event.currentItem!!)
+                        event.currentItem = null
+                    }
+                }
+            }
+
+            slot(1, 3) {
+                item = previous
+
+                onClick {
+                    list.index--
+                }
+            }
+            slot(7, 3) {
+                item = next
+
+                onClick {
+                    list.index++
+                }
+            }
+
+            val list2 = list(2, 1, 6, 1, false, { ttradeList }) {
+
+            }
+
+            slot(1, 1) {
+                item = previous
+
+                onClick {
+                    list2.index--
+                }
+            }
+            slot(7, 1) {
+                item = next
+
+                onClick {
+                    list2.index++
+                }
+            }
+
+            onClickBottom { event ->
+                if (event.currentItem != null) {
+                    pitemList.add(event.currentItem!!)
+                    ptradeList.add(event.currentItem!!)
+                    event.currentItem = null
+                }
+                list.refresh()
+            }
+
+            Bukkit.getScheduler().runTaskTimer(Lands.plugin, Runnable { list2.refresh() }, 0L, 1L)
+        }
+        player.player.openFrame(
+            pFrame
+        )
+
+        tFrame = InvFX.frame(5, text("거래")) {
+            for (i in 0..8) {
+                if (i != 4) {
+                    slot(i, 0) {
+                        item = ItemStack(Material.WHITE_WOOL)
+                    }
+                } else {
+                    slot (i, 0) {
+                        item = ItemStack(Material.GREEN_WOOL).apply {
+                            itemMeta = itemMeta.apply {
+                                displayName(text("수락!"))
+                            }
+                        }
+                        onClick {
+                            tAccept = true
+                            if (pAccept) {
+                                tradeSuccess(player, trader, pitemList, titemList, pLandList, tLandList)
+                                player.player.sendMessage(text("거래 성공!"))
+                                trader.player.sendMessage(text("거래 성공!"))
+                            } else {
+                                trader.player.sendMessage(text("거래 수락[1/2]"))
+                                player.player.sendMessage(text("거래 수락[1/2]"))
+                            }
+                        }
+                    }
+                }
+                slot(i, 4) {
+                    item = ItemStack(Material.WHITE_WOOL)
+                }
+                slot(i, 2) {
+                    item = ItemStack(Material.WHITE_WOOL)
+                }
+            }
+            slot(0, 1) {
+                item = ItemStack(Material.WHITE_WOOL)
+            }
+            slot(0, 3) {
+                item = ItemStack(Material.WHITE_WOOL)
+            }
+            slot(8, 1) {
+                item = ItemStack(Material.WHITE_WOOL)
+            }
+            slot(8, 3) {
+                item = ItemStack(Material.GLOBE_BANNER_PATTERN).apply {
+                    itemMeta = itemMeta.apply {
+                        displayName(text("집문서"))
+                    }
+                }
+
+                onClick {
+                    updateTLandFrame(trader)
+                    trader.player.openFrame(tLandFrame!!)
+                }
+            }
+
+            val list = list(2, 3, 6, 3, false, { ttradeList }) {
+                onClickItem { x, y, item, event ->
+                    if (titemList.contains(item.first)) {
+                        ttradeList.remove(event.currentItem)
+                        titemList.remove(event.currentItem)
+                        trader.player.inventory.addItem(event.currentItem!!)
+                        event.currentItem = null
+                    }
+                }
+            }
+
+            slot(1, 3) {
+                item = previous
+                onClick { list.index-- }
+            }
+
+            slot(7, 3) {
+                item = next
+                onClick { list.index++ }
+            }
+
+            val list2 = list(2, 1, 6, 1, false, { ptradeList }) {
+
+            }
+
+            slot(1, 1) {
+                item = previous
+                onClick { list2.index-- }
+            }
+
+            slot(7, 1) {
+                item = next
+                onClick { list.index++ }
+            }
+
+            onClickBottom { event ->
+                if (event.currentItem != null) {
+                    titemList.add(event.currentItem!!)
+                    ttradeList.add(event.currentItem!!)
+                    event.currentItem = null
+                }
+                list.refresh()
+            }
+
+            Bukkit.getScheduler().runTaskTimer(Lands.plugin, Runnable { list2.refresh() }, 0L, 1L)
+        }
+
+        trader.player.openFrame(
+            tFrame
+        )
+    }
+
+    fun updatePLandFrame(player: MerchantPlayer) {
+        pLandFrame = InvFX.frame(2, text("거래할 땅을 선택하시오.")) {
+            val list = arrayListOf<Land>()
+            list(0, 0, 7, 1, false, { Lands.lands.filter { it.owner == player.player.name && player.initialLand != it } }) {
+                transform {
+                    ItemStack(Material.GLOBE_BANNER_PATTERN).apply {
+                        itemMeta = itemMeta.apply {
+                            displayName(text("(${it.locx.toInt()}, ${it.locz.toInt()})"))
+                            if (pLandList.contains(it)) {
+                                lore(listOf(
+                                    text("판매").color(NamedTextColor.GREEN)
+                                ))
+                                list.add(it)
+                            } else {
+                                lore(listOf(
+                                    text("판매 안 함").color(NamedTextColor.RED)
+                                ))
+                            }
+                        }
+                    }
+                }
+
+                onClickItem { x, y, (land, _), event ->
+                    if (list.contains(land)) {
+                        list.remove(land)
+                        event.currentItem?.itemMeta = event.currentItem!!.itemMeta.apply {
+                            lore(listOf(
+                                text("판매 안 함").color(NamedTextColor.RED)
+                            ))
+                        }
+                    } else {
+                        list.add(land)
+                        event.currentItem?.itemMeta = event.currentItem!!.itemMeta.apply {
+                            lore(listOf(
+                                text("판매").color(NamedTextColor.GREEN)
+                            ))
+                        }
+                    }
+                }
+            }
+
+            slot(8, 0) {
+                item = ItemStack(Material.GREEN_WOOL).apply {
+                    itemMeta = itemMeta.apply {
+                        displayName(text("돌아가기"))
+                    }
+                }
+
+                onClick {
+                    pLandList.clear()
+                    ptradeList.clear()
+                    pitemList.forEach {
+                        ptradeList.add(it)
+                    }
+                    list.forEach {
+                        ptradeList.add(ItemStack(Material.GLOBE_BANNER_PATTERN).apply {
+                            itemMeta = itemMeta.apply {
+                                displayName(text("(${it.locx.toInt()}, ${it.locz.toInt()})"))
+                            }
+                        })
+                        pLandList.add(it)
+                    }
+                    player.player.openFrame(pFrame)
+                }
+            }
+        }
+    }
+
+    fun updateTLandFrame(trader: MerchantPlayer) {
+        tLandFrame = InvFX.frame(2, text("거래할 땅을 선택하시오.")) {
+            val list = arrayListOf<Land>()
+            list(0, 0, 7, 1, false, { Lands.lands.filter { it.owner == trader.player.name && trader.initialLand != it } }) {
+                transform {
+                    ItemStack(Material.GLOBE_BANNER_PATTERN).apply {
+                        itemMeta = itemMeta.apply {
+                            displayName(text("(${it.locx.toInt()}, ${it.locz.toInt()})"))
+                            if (tLandList.contains(it)) {
+                                lore(listOf(
+                                    text("판매").color(NamedTextColor.GREEN)
+                                ))
+                                list.add(it)
+                            } else {
+                                lore(listOf(
+                                    text("판매 안 함").color(NamedTextColor.RED)
+                                ))
+                            }
+                        }
+                    }
+                }
+
+                onClickItem { x, y, (land, _), event ->
+                    if (list.contains(land)) {
+                        list.remove(land)
+                        event.currentItem?.itemMeta = event.currentItem!!.itemMeta.apply {
+                            lore(listOf(
+                                text("판매 안 함").color(NamedTextColor.RED)
+                            ))
+                        }
+                    } else {
+                        list.add(land)
+                        event.currentItem?.itemMeta = event.currentItem!!.itemMeta.apply {
+                            lore(listOf(
+                                text("판매").color(NamedTextColor.GREEN)
+                            ))
+                        }
+                    }
+                }
+            }
+
+            slot(8, 0) {
+                item = ItemStack(Material.GREEN_WOOL).apply {
+                    itemMeta = itemMeta.apply {
+                        displayName(text("돌아가기"))
+                    }
+                }
+
+                onClick {
+                    ttradeList.clear()
+                    tLandList.clear()
+                    titemList.forEach {
+                        ttradeList.add(it)
+                    }
+                    list.forEach {
+                        ttradeList.add(ItemStack(Material.GLOBE_BANNER_PATTERN).apply {
+                            itemMeta = itemMeta.apply {
+                                displayName(text("(${it.locx.toInt()}, ${it.locz.toInt()})"))
+                            }
+                        })
+                        tLandList.add(it)
+                    }
+                    trader.player.openFrame(tFrame)
+                }
+            }
+        }
+    }
+
+    fun tradeSuccess(player: MerchantPlayer, trader: MerchantPlayer, pItemList: List<ItemStack>, tItemList: List<ItemStack>, pLands: List<Land>, tLands: List<Land>) {
+        player.player.closeInventory()
+        trader.player.closeInventory()
+        pItemList.forEach {
+            trader.player.inventory.addItem(it)
+        }
+        tItemList.forEach {
+            player.player.inventory.addItem(it)
+        }
+        pLands.forEach {
+            it.owner = trader.player.name
+        }
+        tLands.forEach {
+            it.owner = player.player.name
         }
     }
 
