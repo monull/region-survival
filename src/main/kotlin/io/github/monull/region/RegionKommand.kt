@@ -2,6 +2,7 @@ package io.github.monull.region
 
 import io.github.monull.region.land.Land
 import io.github.monull.region.merchant.Merchant
+import io.github.monull.region.merchant.MerchantFrame
 import io.github.monun.kommand.PluginKommand
 import io.github.monun.kommand.getValue
 import net.kyori.adventure.text.Component.text
@@ -53,11 +54,11 @@ object RegionKommand {
                     x
                 }
                 executes {
-                    Lands.merchantPlayers.forEach {
-                        it.player.teleport(it.initialLand.loc)
-                    }
                     Lands.canAccessAll = false
                     setupLands()
+                    Lands.merchantPlayers.forEach {
+                        it.player.teleport(it.merchant!!.entity.location)
+                    }
                     feedback(text("시작!"))
                 }
             }
@@ -72,6 +73,12 @@ object RegionKommand {
                     Lands.plugin.fakeEntityServer.entities.forEach {
                         it.remove()
                     }
+                }
+            }
+
+            then("test") {
+                executes {
+                    MerchantFrame().trade(Lands.merchantPlayers.first(), Lands.merchantPlayers.first())
                 }
             }
         }

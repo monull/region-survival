@@ -1,0 +1,13 @@
+{
+  "providers": [
+    {
+      "file": "minecraft:guis/trade.png",
+      "chars": [
+        "╚"
+      ],
+      "height": 8,
+      "ascent": 9,
+      "type": "bitmap"
+    }
+  ]
+}

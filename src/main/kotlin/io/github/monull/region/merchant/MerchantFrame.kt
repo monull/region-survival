@@ -365,7 +365,7 @@ class MerchantFrame {
     lateinit var tFrame: InvFrame
 
     fun trade(player: MerchantPlayer, trader: MerchantPlayer) {
-        pFrame = InvFX.frame(5, text("거래")) {
+        pFrame = InvFX.frame(5, text("╚")) {
             for (i in 0..8) {
                 if (i != 4) {
                     slot(i, 0) {
@@ -480,7 +480,7 @@ class MerchantFrame {
             pFrame
         )
 
-        tFrame = InvFX.frame(5, text("거래")) {
+        tFrame = InvFX.frame(5, text("╚")) {
             for (i in 0..8) {
                 if (i != 4) {
                     slot(i, 0) {
