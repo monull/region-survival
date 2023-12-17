@@ -27,6 +27,7 @@ dependencies {
     compileOnly("io.github.monun:kommand-api:3.1.7")
     compileOnly("io.github.monun:tap-api:4.9.8")
     implementation("io.github.monun:invfx-api:3.3.2")
+    implementation("net.dv8tion:JDA:5.0.0-beta.18")
 }
 
 extra.apply {

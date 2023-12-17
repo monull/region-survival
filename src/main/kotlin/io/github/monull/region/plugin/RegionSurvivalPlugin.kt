@@ -2,6 +2,7 @@ package io.github.monull.region.plugin
 
 import io.github.monull.region.Lands
 import io.github.monull.region.RegionKommand
+import io.github.monull.region.discord.LandBot
 import io.github.monull.region.land.LandManager
 import io.github.monull.region.merchant.MerchantPlayer
 import io.github.monun.kommand.kommand
@@ -21,6 +22,7 @@ class RegionSurvivalPlugin : JavaPlugin() {
         dataFolder.mkdirs()
         setupModules()
         setupServer()
+        LandBot().start()
     }
 
     override fun onDisable() {

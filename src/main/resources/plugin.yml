@@ -6,3 +6,4 @@ libraries:
   - io.github.monun:tap-core:4.9.8
   - io.github.monun:kommand-core:3.1.7
   - io.github.monun:invfx-core:3.3.2
+  - net.dv8tion:JDA:5.0.0-beta.18

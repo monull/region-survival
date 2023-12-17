@@ -427,6 +427,8 @@ class MerchantFrame {
                         pitemList.remove(event.currentItem)
                         player.player.inventory.addItem(event.currentItem!!)
                         event.currentItem = null
+                        pAccept = false
+                        tAccept = false
                     }
                 }
             }
@@ -470,6 +472,8 @@ class MerchantFrame {
                     pitemList.add(event.currentItem!!)
                     ptradeList.add(event.currentItem!!)
                     event.currentItem = null
+                    pAccept = false
+                    tAccept = false
                 }
                 list.refresh()
             }
@@ -542,6 +546,8 @@ class MerchantFrame {
                         titemList.remove(event.currentItem)
                         trader.player.inventory.addItem(event.currentItem!!)
                         event.currentItem = null
+                        pAccept = false
+                        tAccept = false
                     }
                 }
             }
@@ -575,6 +581,8 @@ class MerchantFrame {
                     titemList.add(event.currentItem!!)
                     ttradeList.add(event.currentItem!!)
                     event.currentItem = null
+                    pAccept = false
+                    tAccept = false
                 }
                 list.refresh()
             }
